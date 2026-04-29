@@ -29,7 +29,7 @@ void viewAvailableMedicines(const unordered_map<int,Medicine*> &meds, unordered_
 void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>> &orders,unordered_map<int,Medicine*> &meds,unordered_map<int,int> &inventory) {
     int op;
     while (true) {
-        cout << "\n=====================================" << endl;
+        cout << endl << "=====================================" << endl;
         cout << "             ADMIN MENU              " << endl;
         cout << "=====================================" << endl;
         cout << "1. Add Medicine" << endl;
@@ -153,7 +153,7 @@ void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>
 void processDoctor(Doctor* u, vector<User*>& users, unordered_map<int,Medicine*> &meds, unordered_map<int,int> &inventory, unordered_map<int,vector<int>> &prescriptions) {
     int op;
     while (true) {
-        cout << "\n=====================================" << endl;
+        cout << endl << "=====================================" << endl;
         cout << "             DOCTOR MENU             " << endl;
         cout << "=====================================" << endl;
         cout << "1. Prescribe medicines" << endl;
@@ -204,7 +204,7 @@ void processDoctor(Doctor* u, vector<User*>& users, unordered_map<int,Medicine*>
 void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_map<int,int> &inventory, unordered_map<int,vector<int>> &prescriptions, unordered_map<int,vector<Orders>> &orders) {
     int op;
     while (true) {
-        cout << "\n=====================================" << endl;
+        cout << endl << "=====================================" << endl;
         cout << "            CUSTOMER MENU            " << endl;
         cout << "=====================================" << endl;
         cout << "1. View all medicines" << endl;
@@ -224,16 +224,16 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                 cout << "Enter Medicine ID: ";
                 cin >> medId;
                 if (meds.find(medId) == meds.end()) {
-                    throw runtime_error("Medicine does not exist!");
+                    throw MedicineNotFoundException();
                 }
                 if (inventory[medId] <= 0) {
-                    throw runtime_error("Medicine is currently out of stock!");
+                    throw OutOfStockException();
                 }
                 u->addToCart(meds[medId]);
                 cout << "Medicine added to cart!" << endl;
             } else if (op == 3) {
                 vector<Medicine*> cart = u->getCart();
-                cout << "\n--- Your Cart ---" << endl;
+                cout << endl << "--- Your Cart ---" << endl;
                 if (cart.empty()) {
                     cout << "Your cart is currently empty." << endl;
                 } else {
@@ -258,7 +258,6 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                     Medicine* currentMed = cart[i];
                     int medId = currentMed->getId();
                     
-                    // Check if prescription medicine
                     if (dynamic_cast<PrescriptionMedicine*>(currentMed) != nullptr) {
                         bool hasPrescription = false;
                         if (prescriptions.find(userId) != prescriptions.end()) {
@@ -295,6 +294,10 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
             } else {
                 cout << "Invalid option!" << endl;
             }
+        } catch (const MedicineNotFoundException &e) {
+            cout << "Error: " << e.what() << " Please check the ID and try again." << endl;
+        } catch (const OutOfStockException &e) {
+            cout << "Error: " << e.what() << " Please wait for restock." << endl;
         } catch (const exception &e) {
             cout << "Error: " << e.what() << endl;
         }
@@ -309,7 +312,7 @@ int main() {
     unordered_map<int,vector<int>> prescriptions;
     users.push_back(new Admin("admin", "admin"));
     while (true) {
-        cout << "\n=====================================" << endl;
+        cout << endl << "=====================================" << endl;
         cout << "      PHARMACY MANAGEMENT SYSTEM     " << endl;
         cout << "=====================================" << endl;
         cout << "1. Login" << endl;

@@ -8,3 +8,17 @@ class InvalidNoException : public exception {
             return "Invalid option selected!";
         }
 };
+
+class MedicineNotFoundException : public exception {
+    public:
+        const char* what() const throw() {
+            return "Medicine does not exist!";
+        }
+};
+
+class OutOfStockException : public exception {
+    public:
+        const char* what() const throw() {
+            return "Medicine is currently out of stock!";
+        }
+};
