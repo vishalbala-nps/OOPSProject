@@ -220,38 +220,31 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
             if (op == 1) {
                 viewAvailableMedicines(meds, inventory);
             } else if (op == 2) {
-                int medId, qty;
+                int medId;
                 cout << "Enter Medicine ID: ";
                 cin >> medId;
                 if (meds.find(medId) == meds.end()) {
                     throw runtime_error("Medicine does not exist!");
                 }
-                cout << "Enter quantity: ";
-                cin >> qty;
-                if (qty <= 0) {
-                    throw runtime_error("Quantity must be greater than zero!");
+                if (inventory[medId] <= 0) {
+                    throw runtime_error("Medicine is currently out of stock!");
                 }
-                if (inventory[medId] < qty) {
-                    throw runtime_error("Not enough medicine in stock!");
-                }
-                u->addToCart(meds[medId], qty);
+                u->addToCart(meds[medId]);
                 cout << "Medicine added to cart!" << endl;
             } else if (op == 3) {
-                vector<pair<Medicine*, int>> cart = u->getCart();
+                vector<Medicine*> cart = u->getCart();
                 cout << "\n--- Your Cart ---" << endl;
                 if (cart.empty()) {
                     cout << "Your cart is currently empty." << endl;
                 } else {
                     double total = 0;
                     for (int i = 0; i < cart.size(); i++) {
-                        cart[i].first->displayDetails();
-                        cout << "    Quantity    : " << cart[i].second << endl;
-                        cout << endl;
+                        cart[i]->displayDetails();
                     }
                 }
                 cout << "-----------------" << endl;
             } else if (op == 4) {
-                vector<pair<Medicine*, int>> cart = u->getCart();
+                vector<Medicine*> cart = u->getCart();
                 if (cart.empty()) {
                     cout << "Cart is empty! Please add items before placing an order." << endl;
                     continue;
@@ -262,9 +255,8 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                 
                 int userId = u->getUserId();
                 for (int i = 0; i < cart.size(); i++) {
-                    Medicine* currentMed = cart[i].first;
+                    Medicine* currentMed = cart[i];
                     int medId = currentMed->getId();
-                    int numInputQuantity = cart[i].second;
                     
                     // Check if prescription medicine
                     if (dynamic_cast<PrescriptionMedicine*>(currentMed) != nullptr) {
@@ -284,12 +276,13 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                         }
                     }
                     
-                    if (inventory[medId] >= numInputQuantity) {
+                    if (inventory[medId] > 0) {
+                        int numInputQuantity = 1; // Assuming 1 per item added
                         orders[userId].push_back(Orders(userId, medId, numInputQuantity, deliveryLocation));
                         inventory[medId] -= numInputQuantity;
-                        cout << "Order placed successfully for Medicine ID: " << medId << " (Qty: " << numInputQuantity << ")" << endl;
+                        cout << "Order placed successfully for Medicine ID: " << medId << endl;
                     } else {
-                        cout << "Not enough stock for Medicine " << medId << "! Removing from order." << endl;
+                        cout << "Medicine " << medId << " is out of stock!" << endl;
                     }
                 }
                 u->clearCart();
