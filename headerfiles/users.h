@@ -42,9 +42,11 @@ class Admin : public User {
       return ADMIN;
     }
     void displayDetails() override {
-      cout << "User ID: " << userId << endl;
-      cout << "Username: " << username << endl;
-      cout << "Role: Admin" << endl;
+      cout << "  ----------------------------" << endl;
+      cout << "  Role     : Admin" << endl;
+      cout << "  User ID  : " << userId << endl;
+      cout << "  Username : " << username << endl;
+      cout << "  ----------------------------" << endl;
     }
 };
 
@@ -55,9 +57,11 @@ class Doctor : public User {
       return DOCTOR;
     }
     void displayDetails() override {
-      cout << "User ID: " << userId << endl;
-      cout << "Username: " << username << endl;
-      cout << "Role: Doctor" << endl;
+      cout << "  ----------------------------" << endl;
+      cout << "  Role     : Doctor" << endl;
+      cout << "  User ID  : " << userId << endl;
+      cout << "  Username : " << username << endl;
+      cout << "  ----------------------------" << endl;
     }
 };
 
@@ -75,10 +79,15 @@ class Customer : public User {
     vector<Medicine*> getCart() {
       return cart;
     }
+    void clearCart() {
+      cart.clear();
+    }
     void displayDetails() override {
-      cout << "User ID: " << userId << endl;
-      cout << "Username: " << username << endl;
-      cout << "Role: Customer" << endl;
+      cout << "  ----------------------------" << endl;
+      cout << "  Role     : Customer" << endl;
+      cout << "  User ID  : " << userId << endl;
+      cout << "  Username : " << username << endl;
+      cout << "  ----------------------------" << endl;
     }
 };
 

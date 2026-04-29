@@ -21,10 +21,10 @@ class Orders {
             return orderId;
         }
         void displayDetails() {
-            cout << "Order ID: " << orderId << endl;
-            cout << "Medicine ID: " << medicineId << endl;
-            cout << "Quantity: " << quantity << endl;
-            cout << "Delivery Location: " << deliveryLocation << endl;
+            cout << "  * Order ID          : " << orderId << endl;
+            cout << "    Medicine ID       : " << medicineId << endl;
+            cout << "    Quantity          : " << quantity << endl;
+            cout << "    Delivery Location : " << deliveryLocation << endl;
         }
 };
 

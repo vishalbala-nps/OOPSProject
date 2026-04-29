@@ -19,9 +19,9 @@ class Medicine {
             return id;
         }
         virtual void displayDetails() {
-            cout << "Medicine ID: " << id << endl;
-            cout << "Name: " << name << endl;
-            cout << "Price: Rs." << price << endl;
+            cout << "  * Medicine ID : " << id << endl;
+            cout << "    Name        : " << name << endl;
+            cout << "    Price       : Rs." << price << endl;
         }
 
 };
@@ -31,7 +31,7 @@ class OTCMedicine : public Medicine {
         OTCMedicine(string name, double price) : Medicine(name, price) {}
         void displayDetails() override {
             Medicine::displayDetails();
-            cout << "Type: Over-the-Counter" << endl;
+            cout << "    Type        : Over-the-Counter" << endl;
         }
 };
 
@@ -40,7 +40,7 @@ class PrescriptionMedicine : public Medicine {
         PrescriptionMedicine(string name, double price) : Medicine(name, price) {}
         void displayDetails() override {
             Medicine::displayDetails();
-            cout << "Type: Prescription" << endl;
+            cout << "    Type        : Prescription" << endl;
         }
 };
 
