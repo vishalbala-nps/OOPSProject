@@ -5,6 +5,11 @@
 #include "errors.h"
 using namespace std;
 
+int Medicine::lastAdd = 0;
+int Orders::lastAdd = 0;
+int User::lastAdd = 0;
+
+
 void viewCustomers(const vector<User*>& users) {
     cout << endl << "Customers:" << endl;
     for (int i=0; i<users.size(); i++) {
@@ -24,6 +29,46 @@ void viewAvailableMedicines(const unordered_map<int,Medicine*> &meds, unordered_
             cout << endl;
         }
     }
+}
+
+void createAndAddUser(vector<User*>& users, ROLES roleType) {
+    string n, p;
+    string roleName;
+    if (roleType == ADMIN) roleName = "Admin";
+    else if (roleType == DOCTOR) roleName = "Doctor";
+    else roleName = "Customer";
+
+    if (roleType == CUSTOMER) {
+        cout << "Enter username: ";
+    } else {
+        cout << "Enter username of " << roleName << ": ";
+    }
+    cin >> n;
+
+    for (int i = 0; i < users.size(); i++) {
+        if (users[i]->getUsername() == n) {
+            cout << "Error: Username '" << n << "' already exists! Account creation failed." << endl;
+            return;
+        }
+    }
+
+    cout << "Enter password: ";
+    cin >> p;
+
+    if (roleType == ADMIN) {
+        users.push_back(new Admin(n, p));
+    } else if (roleType == DOCTOR) {
+        users.push_back(new Doctor(n, p));
+    } else {
+        users.push_back(new Customer(n, p));
+    }
+
+    if (roleType == CUSTOMER) {
+        cout << "Account created successfully!" << endl;
+    } else {
+        cout << roleName << " added successfully!" << endl;
+    }
+    cout << "ID: " << users.back()->getUserId() << endl;
 }
 
 void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>> &orders,unordered_map<int,Medicine*> &meds,unordered_map<int,int> &inventory) {
@@ -97,8 +142,12 @@ void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>
                 cout << "Enter quantity: ";
                 cin >> qty;
                 if (qty < 0) throw InvalidNoException();
-                inventory[id] += qty;
-                cout << "Inventory updated successfully!" << endl;
+                if (meds.find(id) == meds.end()) {
+                    cout << "Medicine ID not found!" << endl;
+                } else {
+                    inventory[id] += qty;
+                    cout << "Inventory updated successfully!" << endl;
+                }
             } else if (op == 4) {
                 for (auto it = orders.begin(); it != orders.end(); ++it) {
                     for (int i=0;i<it->second.size();i++) {
@@ -108,14 +157,7 @@ void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>
                     }
                 }
             } else if (op == 5) {
-                string n,p;
-                cout << "Enter username of Doctor: ";
-                cin >> n;
-                cout << "Enter password: ";
-                cin >> p;
-                users.push_back(new Doctor(n,p));
-                cout << "Doctor added successfully!" << endl;
-                cout << "ID: " << users.back()->getUserId() << endl;
+                createAndAddUser(users, DOCTOR);
             } else if (op == 6) {
                 cout << endl << "Doctors:" << endl;
                 for (int i=0;i<users.size();i++) {
@@ -127,14 +169,7 @@ void processAdmin(Admin* u,vector<User*> &users,unordered_map<int,vector<Orders>
             } else if (op == 7) {
                 viewCustomers(users);
             } else if (op == 8) {
-                string n,p;
-                cout << "Enter username of Admin: ";
-                cin >> n;
-                cout << "Enter password: ";
-                cin >> p;
-                users.push_back(new Admin(n,p));
-                cout << "Admin added successfully!" << endl;
-                cout << "ID: " << users.back()->getUserId() << endl;
+                createAndAddUser(users, ADMIN);
             } else if (op == 9) {
                 cout << endl << "Account Details:" << endl;
                 u->displayDetails();
@@ -240,7 +275,9 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                     double total = 0;
                     for (int i = 0; i < cart.size(); i++) {
                         cart[i]->displayDetails();
+                        total += cart[i]->getPrice();
                     }
+                    cout << endl << "Total Price: Rs." << total << endl;
                 }
                 cout << "-----------------" << endl;
             } else if (op == 4) {
@@ -270,18 +307,18 @@ void processCustomer(Customer* u, unordered_map<int,Medicine*> &meds, unordered_
                             }
                         }
                         if (!hasPrescription) {
-                            cout << "Order failed: Medicine " << medId << " (" << currentMed->getId() << ") requires a prescription!" << endl;
+                            cout << "Order failed: Medicine " << currentMed->getMedicine() << " (" << currentMed->getId() << ") requires a prescription!" << endl;
                             continue;
                         }
                     }
                     
                     if (inventory[medId] > 0) {
                         int numInputQuantity = 1; // Assuming 1 per item added
-                        orders[userId].push_back(Orders(userId, medId, numInputQuantity, deliveryLocation));
+                        orders[userId].push_back(Orders(medId, numInputQuantity, deliveryLocation));
                         inventory[medId] -= numInputQuantity;
-                        cout << "Order placed successfully for Medicine ID: " << medId << endl;
+                        cout << "Order placed successfully for Medicine: " << meds[medId]->getMedicine() << endl;
                     } else {
-                        cout << "Medicine " << medId << " is out of stock!" << endl;
+                        cout << "Medicine " << meds[medId]->getMedicine() << " is out of stock!" << endl;
                     }
                 }
                 u->clearCart();
@@ -346,14 +383,7 @@ int main() {
                 cout << "Invalid username or password!" << endl;
             }
         } else if (choice == 2) {
-            string n,p;
-            cout << "Enter username: ";
-            cin >> n;
-            cout << "Enter password: ";
-            cin >> p;
-            users.push_back(new Customer(n,p));
-            cout << "Account created successfully!" << endl;
-            cout << "ID: " << users.back()->getUserId() << endl;
+            createAndAddUser(users, CUSTOMER);
         } else if (choice == 3) {
             break;
         } else {

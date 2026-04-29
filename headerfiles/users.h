@@ -91,5 +91,4 @@ class Customer : public User {
     }
 };
 
-int User::lastAdd = 0;
 #endif

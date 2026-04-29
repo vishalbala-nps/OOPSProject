@@ -11,7 +11,7 @@ class Orders {
         string deliveryLocation;
         static int lastAdd;
     public:
-        Orders(int userId, int medicineId, int quantity,string deliveryLocation) {
+        Orders(int medicineId, int quantity,string deliveryLocation) {
             this->medicineId = medicineId;
             this->quantity = quantity;
             this->orderId = ++lastAdd;
@@ -28,5 +28,4 @@ class Orders {
         }
 };
 
-int Orders::lastAdd = 0;
 #endif

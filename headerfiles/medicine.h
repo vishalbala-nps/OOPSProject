@@ -18,6 +18,12 @@ class Medicine {
         int getId() {
             return id;
         }
+        string getMedicine() {
+            return name;
+        }
+        double getPrice() { 
+            return price; 
+        }
         virtual void displayDetails() {
             cout << "  * Medicine ID : " << id << endl;
             cout << "    Name        : " << name << endl;
@@ -44,5 +50,4 @@ class PrescriptionMedicine : public Medicine {
         }
 };
 
-int Medicine::lastAdd = 0;
 #endif
