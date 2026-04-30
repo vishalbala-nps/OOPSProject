@@ -1,6 +1,7 @@
 #ifndef MEDICINE_H
 #define MEDICINE_H
 #include <iostream>
+#include <string>
 using namespace std;
 
 class Medicine {
@@ -10,44 +11,23 @@ class Medicine {
         double price;
         static int lastAdd;
     public:
-        Medicine(string name, double price) {
-            this->name = name;
-            this->price = price;
-            this->id = ++lastAdd;
-        }
-        int getId() {
-            return id;
-        }
-        string getMedicine() {
-            return name;
-        }
-        double getPrice() { 
-            return price; 
-        }
-        virtual void displayDetails() {
-            cout << "  * Medicine ID : " << id << endl;
-            cout << "    Name        : " << name << endl;
-            cout << "    Price       : Rs." << price << endl;
-        }
-
+        Medicine(string, double);
+        int getId();
+        string getMedicine();
+        double getPrice();
+        virtual void displayDetails();
 };
 
 class OTCMedicine : public Medicine {
     public:
         OTCMedicine(string name, double price) : Medicine(name, price) {}
-        void displayDetails() override {
-            Medicine::displayDetails();
-            cout << "    Type        : Over-the-Counter" << endl;
-        }
+        void displayDetails() override;
 };
 
 class PrescriptionMedicine : public Medicine {
     public:
         PrescriptionMedicine(string name, double price) : Medicine(name, price) {}
-        void displayDetails() override {
-            Medicine::displayDetails();
-            cout << "    Type        : Prescription" << endl;
-        }
+        void displayDetails() override;
 };
 
 #endif

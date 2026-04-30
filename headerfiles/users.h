@@ -1,6 +1,5 @@
 #ifndef USERS_H
 #define USERS_H
-#include <iostream>
 #include "medicine.h"
 using namespace std;
 
@@ -14,23 +13,11 @@ class User {
     string password;
 
   public:
-    User(string username, string password) {
-      this->username = username;
-      this->password = password;
-      this->userId = ++lastAdd;
-    }
-    int getUserId() { 
-      return userId; 
-    }
-    string getUsername() { 
-      return username; 
-    }
-    bool verifyPassword(string inpass) {
-      return inpass == password;
-    }
-    void setPassword(string password) { 
-      this->password = password;
-    }
+    User(string, string);
+    int getUserId();
+    string getUsername();
+    bool verifyPassword(string);
+    void setPassword(string password);
     virtual ROLES getRole() = 0;
     virtual void displayDetails() = 0;
 };
@@ -38,31 +25,15 @@ class User {
 class Admin : public User {
   public:
     Admin(string username, string password) : User(username, password) {}
-    ROLES getRole() override {
-      return ADMIN;
-    }
-    void displayDetails() override {
-      cout << "  ----------------------------" << endl;
-      cout << "  Role     : Admin" << endl;
-      cout << "  User ID  : " << userId << endl;
-      cout << "  Username : " << username << endl;
-      cout << "  ----------------------------" << endl;
-    }
+    ROLES getRole() override;
+    void displayDetails() override;
 };
 
 class Doctor : public User {
   public:
     Doctor(string username,string password) : User(username,password) {}
-    ROLES getRole() override {
-      return DOCTOR;
-    }
-    void displayDetails() override {
-      cout << "  ----------------------------" << endl;
-      cout << "  Role     : Doctor" << endl;
-      cout << "  User ID  : " << userId << endl;
-      cout << "  Username : " << username << endl;
-      cout << "  ----------------------------" << endl;
-    }
+    ROLES getRole() override;
+    void displayDetails() override;
 };
 
 class Customer : public User {
@@ -70,25 +41,11 @@ class Customer : public User {
     vector<Medicine*> cart;
   public:
     Customer(string username,string password) : User(username,password) {}
-    ROLES getRole() override {
-      return CUSTOMER;
-    }
-    void addToCart(Medicine* medicine) {
-      cart.push_back(medicine);
-    }
-    vector<Medicine*> getCart() {
-      return cart;
-    }
-    void clearCart() {
-      cart.clear();
-    }
-    void displayDetails() override {
-      cout << "  ----------------------------" << endl;
-      cout << "  Role     : Customer" << endl;
-      cout << "  User ID  : " << userId << endl;
-      cout << "  Username : " << username << endl;
-      cout << "  ----------------------------" << endl;
-    }
+    ROLES getRole() override;
+    void addToCart(Medicine* medicine);
+    vector<Medicine*> getCart();
+    void clearCart();
+    void displayDetails() override;
 };
 
 #endif
