@@ -1,6 +1,6 @@
-#include <iostream>
-#include "medicine.h"
 #include "users.h"
+#include "medicine.h"
+#include <iostream>
 using namespace std;
 
 User::User(string username, string password) {
@@ -9,25 +9,15 @@ User::User(string username, string password) {
   this->userId = ++lastAdd;
 }
 
-int User::getUserId() { 
-  return userId; 
-}
+int User::getUserId() { return userId; }
 
-string User::getUsername() { 
-  return username; 
-}
+string User::getUsername() { return username; }
 
-bool User::verifyPassword(string inpass) {
-  return inpass == password;
-}
+bool User::verifyPassword(string inpass) { return inpass == password; }
 
-void User::setPassword(string password) { 
-  this->password = password;
-}
+void User::setPassword(string password) { this->password = password; }
 
-ROLES Admin::getRole() {
-  return ADMIN;
-}
+ROLES Admin::getRole() { return ADMIN; }
 
 void Admin::displayDetails() {
   cout << "  ----------------------------" << endl;
@@ -37,9 +27,7 @@ void Admin::displayDetails() {
   cout << "  ----------------------------" << endl;
 }
 
-ROLES Doctor::getRole() {
-  return DOCTOR;
-}
+ROLES Doctor::getRole() { return DOCTOR; }
 
 void Doctor::displayDetails() {
   cout << "  ----------------------------" << endl;
@@ -49,21 +37,17 @@ void Doctor::displayDetails() {
   cout << "  ----------------------------" << endl;
 }
 
-ROLES Customer::getRole() {
-  return CUSTOMER;
+ROLES Customer::getRole() { return CUSTOMER; }
+
+void Customer::addToCart(Medicine *medicine) {
+  cart[medicine->getId()] = medicine;
 }
 
-void Customer::addToCart(Medicine* medicine) {
-  cart.push_back(medicine);
-}
+void Customer::removeFromCart(int id) { cart.erase(id); }
 
-vector<Medicine*> Customer::getCart() {
-  return cart;
-}
+map<int, Medicine *> Customer::getCart() { return cart; }
 
-void Customer::clearCart() {
-  cart.clear();
-}
+void Customer::clearCart() { cart.clear(); }
 
 void Customer::displayDetails() {
   cout << "  ----------------------------" << endl;

@@ -12,6 +12,7 @@ class Medicine {
         static int lastAdd;
     public:
         Medicine(string, double);
+        virtual ~Medicine() {}
         int getId();
         string getMedicine();
         double getPrice();
