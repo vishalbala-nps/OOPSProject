@@ -40,15 +40,15 @@ public:
 
 class Customer : public User {
 private:
-  // vector<Medicine*> cart;
-  map<int, Medicine *> cart;
+  // Bug 1 Fix: cart now stores quantity alongside Medicine pointer
+  map<int, pair<Medicine *, int>> cart; // id -> {medicine, qty}
 
 public:
   Customer(string username, string password) : User(username, password) {}
   ROLES getRole() override;
-  void addToCart(Medicine *medicine);
-  void removeFromCart(int index);
-  map<int, Medicine *> getCart();
+  void addToCart(Medicine *medicine, int qty); // Bug 1 Fix: qty parameter added
+  void removeFromCart(int id);
+  map<int, pair<Medicine *, int>> getCart();   // Bug 1 Fix: updated return type
   void clearCart();
   void displayDetails() override;
 };

@@ -35,4 +35,3 @@ void PrescriptionMedicine::displayDetails() {
     Medicine::displayDetails();
     cout << "    Type        : Prescription" << endl;
 }
-

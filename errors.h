@@ -5,7 +5,8 @@ using namespace std;
 class InvalidNoException : public exception {
     public: 
         const char* what() const throw() {
-            return "Invalid option selected!";
+            // Workflow Bug C Fix: accurate message covering all usage contexts
+            return "Value must be a positive number!";
         }
 };
 

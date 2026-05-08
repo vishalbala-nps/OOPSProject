@@ -3,6 +3,10 @@
 #include "orders.h"
 #include "users.h"
 #include <iostream>
+#include <limits>
+#include <map>
+#include <unordered_map>
+#include <vector>
 using namespace std;
 
 int Medicine::lastAdd = 0;
@@ -23,9 +27,10 @@ void viewAvailableMedicines(const unordered_map<int, Medicine *> &meds,
                             unordered_map<int, int> &inventory) {
   cout << endl << "Medicines:" << endl;
   for (auto it = meds.begin(); it != meds.end(); ++it) {
-    if (inventory[it->first] > 0) {
+    // Bug 7 Fix: use count+at instead of [] to avoid silent zero-insertion
+    if (inventory.count(it->first) && inventory.at(it->first) > 0) {
       it->second->displayDetails();
-      cout << "    Available Qty : " << inventory[it->first] << endl;
+      cout << "    Available Qty : " << inventory.at(it->first) << endl;
       cout << endl;
     }
   }
@@ -100,48 +105,69 @@ void processAdmin(Admin *u, vector<User *> &users,
     cin >> op;
     try {
       if (op == 1) {
-        Medicine *newmed;
         string n;
         double p;
         int qty;
+        int mt;
+
+        // Bug 5 Fix: use getline so medicine names with spaces work
         cout << "Enter name of Medicine: ";
-        getline(cin >> ws, n);
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getline(cin, n);
+
+        // Bug 10 Fix: check name uniqueness before creating
+        bool nameExists = false;
+        for (auto it = meds.begin(); it != meds.end(); ++it) {
+          if (it->second->getMedicine() == n) {
+            nameExists = true;
+            break;
+          }
+        }
+        if (nameExists) {
+          cout << "Error: Medicine with this name already exists!" << endl;
+          continue;
+        }
+
         cout << "Enter price: ";
         cin >> p;
         if (p < 0)
           throw InvalidNoException();
+
         while (true) {
-          int mt;
           cout << "Enter medicine type" << endl;
           cout << "1. Over the Counter" << endl;
           cout << "2. Prescription" << endl;
           cout << "Enter option: ";
           cin >> mt;
-          if (mt == 1) {
-            newmed = new OTCMedicine(n, p);
-            break;
-          } else if (mt == 2) {
-            newmed = new PrescriptionMedicine(n, p);
-            break;
-          } else {
-            cout << "Invalid option!" << endl;
-          }
+          if (mt == 1 || mt == 2) break;
+          cout << "Invalid option!" << endl;
         }
+
+        // Bug 8 Fix: validate qty BEFORE constructing medicine object
+        // so lastAdd is not incremented on a failed creation
         cout << "Enter quantity: ";
         cin >> qty;
-        if (qty < 0) {
-          delete newmed;
+        if (qty < 0)
           throw InvalidNoException();
+
+        Medicine *newmed;
+        if (mt == 1) {
+          newmed = new OTCMedicine(n, p);
+        } else {
+          newmed = new PrescriptionMedicine(n, p);
         }
         meds[newmed->getId()] = newmed;
         inventory[newmed->getId()] = qty;
         cout << "Medicine added successfully!" << endl;
         cout << "ID: " << newmed->getId() << endl;
+
       } else if (op == 2) {
         cout << endl << "Medicines:" << endl;
         for (auto it = meds.begin(); it != meds.end(); ++it) {
           it->second->displayDetails();
-          cout << "    Available Qty : " << inventory[it->first] << endl;
+          // Bug 7 Fix: use count+at instead of []
+          int qty = inventory.count(it->first) ? inventory.at(it->first) : 0;
+          cout << "    Available Qty : " << qty << endl;
           cout << endl;
         }
       } else if (op == 3) {
@@ -207,9 +233,14 @@ void processAdmin(Admin *u, vector<User *> &users,
         for (auto it = orders.begin(); it != orders.end(); ++it) {
           for (int i = 0; i < it->second.size(); i++) {
             if (it->second[i].getOrderId() == oid) {
-              it->second[i].setStatus(st);
+              // Bug 9 Fix: prevent moving status backwards
+              if (st <= it->second[i].getStatus()) {
+                cout << "Error: Cannot move order status backwards!" << endl;
+              } else {
+                it->second[i].setStatus(st);
+                cout << "Order status updated successfully!" << endl;
+              }
               found = true;
-              cout << "Order status updated successfully!" << endl;
               break;
             }
           }
@@ -262,9 +293,29 @@ void processDoctor(Doctor *u, vector<User *> &users,
         }
       }
       bool medExists = (meds.find(medId) != meds.end());
+
       if (userExists && medExists) {
-        prescriptions[userId].push_back(medId);
-        cout << "Medicine prescribed successfully!" << endl;
+        // Bug 4 Fix: only allow prescribing PrescriptionMedicine
+        if (dynamic_cast<PrescriptionMedicine *>(meds[medId]) == nullptr) {
+          cout << "Error: This is an OTC medicine and does not require a prescription!" << endl;
+        } else {
+          // Bug 11 Fix: prevent duplicate prescriptions for same patient
+          bool alreadyPrescribed = false;
+          if (prescriptions.count(userId)) {
+            for (int id : prescriptions[userId]) {
+              if (id == medId) {
+                alreadyPrescribed = true;
+                break;
+              }
+            }
+          }
+          if (alreadyPrescribed) {
+            cout << "Error: This medicine is already prescribed to this patient!" << endl;
+          } else {
+            prescriptions[userId].push_back(medId);
+            cout << "Medicine prescribed successfully!" << endl;
+          }
+        }
       } else {
         cout << "Invalid User ID or Medicine ID!" << endl;
       }
@@ -296,10 +347,11 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
     cout << "1. View all medicines" << endl;
     cout << "2. Add medicine to cart" << endl;
     cout << "3. View cart" << endl;
-    cout << "4. Place order" << endl;
-    cout << "5. View my orders" << endl;
-    cout << "6. View account details" << endl;
-    cout << "7. Logout" << endl;
+    cout << "4. Remove item from cart" << endl;
+    cout << "5. Place order" << endl;
+    cout << "6. View my orders" << endl;
+    cout << "7. View account details" << endl;
+    cout << "8. Logout" << endl;
     cout << "-------------------------------------" << endl;
     cout << "Enter option: ";
     cin >> op;
@@ -307,28 +359,68 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
       if (op == 1) {
         viewAvailableMedicines(meds, inventory);
       } else if (op == 2) {
-        int medId;
+        int medId, qty;
         cout << "Enter Medicine ID: ";
         cin >> medId;
         if (meds.find(medId) == meds.end()) {
           throw MedicineNotFoundException();
         }
-        if (inventory[medId] <= 0) {
+        // Bug 12 Fix: use count+at to avoid silent zero-insertion
+        if (!inventory.count(medId) || inventory.at(medId) <= 0) {
           throw OutOfStockException();
         }
-        u->addToCart(meds[medId]);
+        // Bug 1 & 2 Fix: ask for quantity
+        cout << "Enter quantity: ";
+        cin >> qty;
+        if (qty <= 0)
+          throw InvalidNoException();
+        // Workflow Bug A Fix: subtract what's already in cart before checking stock
+        map<int, pair<Medicine *, int>> currentCart = u->getCart();
+        int alreadyInCart = currentCart.count(medId) ? currentCart.at(medId).second : 0;
+        int effectiveAvailable = inventory.at(medId) - alreadyInCart;
+        if (effectiveAvailable <= 0) {
+          cout << "Error: All available stock is already in your cart!" << endl;
+          continue;
+        }
+        if (effectiveAvailable < qty) {
+          cout << "Error: Only " << effectiveAvailable << " more unit(s) can be added (rest already in cart)!" << endl;
+          continue;
+        }
+        u->addToCart(meds[medId], qty);
         cout << "Medicine added to cart!" << endl;
       } else if (op == 3) {
+        map<int, pair<Medicine *, int>> cart = u->getCart();
+        if (cart.empty()) {
+          cout << "Your cart is empty!" << endl;
+          continue;
+        }
+        // Bug 3 Fix: multiply price by quantity for correct total
         double total = 0;
-        map<int, Medicine *> cart = u->getCart();
         for (auto it = cart.begin(); it != cart.end(); ++it) {
-          it->second->displayDetails();
-          total += it->second->getPrice();
+          it->second.first->displayDetails();
+          cout << "    Quantity    : " << it->second.second << endl;
+          total += it->second.first->getPrice() * it->second.second;
         }
         cout << endl << "Total Price: Rs." << total << endl;
         cout << "-----------------" << endl;
       } else if (op == 4) {
-        map<int, Medicine *> cart = u->getCart();
+        // Workflow Bug B Fix: allow removing a specific item from cart
+        map<int, pair<Medicine *, int>> cart = u->getCart();
+        if (cart.empty()) {
+          cout << "Cart is empty!" << endl;
+          continue;
+        }
+        int removeId;
+        cout << "Enter Medicine ID to remove from cart: ";
+        cin >> removeId;
+        if (!cart.count(removeId)) {
+          cout << "Medicine ID " << removeId << " is not in your cart!" << endl;
+        } else {
+          u->removeFromCart(removeId);
+          cout << "Item removed from cart." << endl;
+        }
+      } else if (op == 5) {
+        map<int, pair<Medicine *, int>> cart = u->getCart();
         vector<int> toRemove;
         if (cart.empty()) {
           cout << "Cart is empty! Please add items before placing an order."
@@ -337,11 +429,14 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
         }
         string deliveryLocation;
         cout << "Enter delivery location: ";
-        getline(cin >> ws, deliveryLocation);
+        // Bug 5 Fix: getline for multi-word delivery locations
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getline(cin, deliveryLocation);
 
         int userId = u->getUserId();
         for (auto it = cart.begin(); it != cart.end(); ++it) {
-          Medicine *currentMed = it->second;
+          Medicine *currentMed = it->second.first;
+          int numInputQuantity = it->second.second; // Bug 2 Fix: use cart qty
           int medId = currentMed->getId();
 
           if (dynamic_cast<PrescriptionMedicine *>(currentMed) != nullptr) {
@@ -363,18 +458,20 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
             }
           }
 
-          if (inventory[medId] > 0) {
-            int numInputQuantity = 1; // Assuming 1 per item added
+          // Bug 12 Fix: use count+at, also check sufficient stock for qty
+          if (inventory.count(medId) && inventory.at(medId) >= numInputQuantity) {
             orders[userId].push_back(
                 Orders(medId, numInputQuantity, deliveryLocation));
             inventory[medId] -= numInputQuantity;
             cout << "Order placed successfully for Medicine: "
-                 << meds[medId]->getMedicine() << endl;
+                 << meds[medId]->getMedicine()
+                 << " (Qty: " << numInputQuantity << ")" << endl;
             toRemove.push_back(medId);
 
             if (dynamic_cast<PrescriptionMedicine *>(currentMed) != nullptr) {
               vector<int> &userPrescriptions = prescriptions[userId];
-              for (auto itP = userPrescriptions.begin(); itP != userPrescriptions.end(); ++itP) {
+              for (auto itP = userPrescriptions.begin();
+                   itP != userPrescriptions.end(); ++itP) {
                 if (*itP == medId) {
                   userPrescriptions.erase(itP);
                   break;
@@ -383,13 +480,13 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
             }
           } else {
             cout << "Medicine " << meds[medId]->getMedicine()
-                 << " is out of stock!" << endl;
+                 << " does not have sufficient stock!" << endl;
           }
         }
         for (int i = 0; i < toRemove.size(); i++) {
           u->removeFromCart(toRemove[i]);
         }
-      } else if (op == 5) {
+      } else if (op == 6) {
         int uid = u->getUserId();
         if (orders.find(uid) == orders.end() || orders[uid].empty()) {
           cout << "You have no orders!" << endl;
@@ -401,11 +498,12 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
           }
           cout << "-------------------" << endl;
         }
-      } else if (op == 6) {
+      } else if (op == 7) {
         cout << endl << "Account Details:" << endl;
         u->displayDetails();
         cout << endl;
-      } else if (op == 7) {
+      } else if (op == 8) {
+        u->clearCart(); // Bug 6 Fix: clear cart on logout
         break;
       } else {
         cout << "Invalid option!" << endl;
@@ -415,6 +513,8 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
            << endl;
     } catch (const OutOfStockException &e) {
       cout << "Error: " << e.what() << " Please wait for restock." << endl;
+    } catch (const InvalidNoException &e) {
+      cout << "Error: " << e.what() << endl;
     } catch (const exception &e) {
       cout << "Error: " << e.what() << endl;
     }

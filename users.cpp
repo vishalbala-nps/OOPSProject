@@ -39,13 +39,18 @@ void Doctor::displayDetails() {
 
 ROLES Customer::getRole() { return CUSTOMER; }
 
-void Customer::addToCart(Medicine *medicine) {
-  cart[medicine->getId()] = medicine;
+// Bug 1 Fix: accumulate quantity if same medicine added again
+void Customer::addToCart(Medicine *medicine, int qty) {
+  if (cart.count(medicine->getId())) {
+    cart[medicine->getId()].second += qty;
+  } else {
+    cart[medicine->getId()] = {medicine, qty};
+  }
 }
 
 void Customer::removeFromCart(int id) { cart.erase(id); }
 
-map<int, Medicine *> Customer::getCart() { return cart; }
+map<int, pair<Medicine *, int>> Customer::getCart() { return cart; }
 
 void Customer::clearCart() { cart.clear(); }
 
