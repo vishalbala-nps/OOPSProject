@@ -105,7 +105,7 @@ void processAdmin(Admin *u, vector<User *> &users,
         double p;
         int qty;
         cout << "Enter name of Medicine: ";
-        cin >> n;
+        getline(cin >> ws, n);
         cout << "Enter price: ";
         cin >> p;
         if (p < 0)
@@ -337,7 +337,7 @@ void processCustomer(Customer *u, unordered_map<int, Medicine *> &meds,
         }
         string deliveryLocation;
         cout << "Enter delivery location: ";
-        cin >> deliveryLocation;
+        getline(cin >> ws, deliveryLocation);
 
         int userId = u->getUserId();
         for (auto it = cart.begin(); it != cart.end(); ++it) {
